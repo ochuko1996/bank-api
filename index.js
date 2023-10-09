@@ -10,7 +10,7 @@ const cors = require('cors')
 // const accountRoute = require('./routes/accountRoute')
 const db = require('./util/db')
 const createTable = require('./tables/tablesIndex')
-const users = require('./routes//usersRoute')
+const users = require('./routes/authRoute')
 const verifyJWT = require('./middleware/verifyJWT')
 const corsOptions = require('./config/corsOptions')
 
