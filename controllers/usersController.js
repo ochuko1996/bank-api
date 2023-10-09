@@ -1,12 +1,11 @@
 const { StatusCodes } = require('http-status-codes')
 const db = require('../util/db')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 
 const registerUser = (req, res)=>{
     const {name, email, phone, user, pass} = req.body
-    // console.log(req.body);
-    // console.log(req);
 
     const sql = `SELECT * FROM users WHERE email = ?`
     
@@ -35,6 +34,39 @@ const registerUser = (req, res)=>{
     })
 }
 
+const login = (req, res)=>{
+
+    const sql = `SELECT * FROM users WHERE email = ?`
+
+    db.query(sql, [req.body.email], (err, result)=>{
+        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("someting went wrong")
+        if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("user not found")
+
+        const data = result[0]
+        const checkPassword = bcrypt.compare(req.body.pass, data.pass)
+
+        if(!checkPassword) return res.status(StatusCodes.BAD_REQUEST).json("Wrong password or email")
+
+        const token = jwt.sign(serializedUser(data), process.env.JWT_SECRET_KEY, {expiresIn: "1d"})
+        res.cookie('jwt', token, {
+            httponly: true, 
+            sameSite: 'none', 
+            maxAge: 24 * 60 * 60 * 1000,
+            // secure: true //when going online or using in chrome uncomment this line
+        })
+        return res.status(StatusCodes.ACCEPTED).json({token, user: serializedUser(data)})
+           
+    })
+}
+
+function serializedUser(user){
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name
+    }
+}
 module.exports = {
-    registerUser
+    registerUser,
+    login
 }
