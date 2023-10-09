@@ -10,9 +10,10 @@ const cors = require('cors')
 // const accountRoute = require('./routes/accountRoute')
 const db = require('./util/db')
 const createTable = require('./tables/tablesIndex')
-const users = require('./routes/authRoute')
+const auth = require('./routes/authRoute')
 const verifyJWT = require('./middleware/verifyJWT')
 const corsOptions = require('./config/corsOptions')
+const users = require('./routes/usersRoute')
 
 //middleware for credentials
 // handle options credentials check - before CORS!
@@ -28,11 +29,12 @@ app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 
 createTable()
-app.use('/api', users)
-// protected routes
-app.use('/api', require('./routes/apiKeyRoute'))
-app.use(verifyJWT)
+app.use('/api', auth)
 //api key generator
+app.use('/api', require('./routes/keyRoute'))
+// protected routes
+app.use(verifyJWT)
+app.use('/api', users)
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })

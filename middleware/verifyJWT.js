@@ -13,9 +13,9 @@ const verifyJWT = (req, res, next)=> {
         token, 
         process.env.JWT_SECRET_KEY, 
         (err, decoded)=>{
-            console.log(err);
             if(err) return res.status(StatusCodes.FORBIDDEN)
-            req.user = decoded.user
+            req.user = decoded
+            // console.log(req.user);
             next()
         }
     )

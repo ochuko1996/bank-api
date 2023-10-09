@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 
-const registerUser = (req, res)=>{
+const registerUser =  (req, res)=>{
     const {name, email, phone, user, pass} = req.body
 
     const sql = `SELECT * FROM users WHERE email = ?`
@@ -17,7 +17,7 @@ const registerUser = (req, res)=>{
 
         // create new user
         // hash password
-        const hashedPwd = bcrypt.hash(pass, 10)
+        const hashedPwd = bcrypt.hashSync(pass, 10)
         const sql = `INSERT INTO users (name, email, phone, user, pass) VALUE (?)`
 
         const values = [
@@ -34,7 +34,7 @@ const registerUser = (req, res)=>{
     })
 }
 
-const login = (req, res)=>{
+const login =  (req, res)=>{
 
     const sql = `SELECT * FROM users WHERE email = ?`
 
@@ -43,8 +43,7 @@ const login = (req, res)=>{
         if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("user not found")
 
         const data = result[0]
-        const checkPassword = bcrypt.compare(req.body.pass, data.pass)
-
+        const checkPassword =  bcrypt.compare(req.body.pass, data.pass)
         if(!checkPassword) return res.status(StatusCodes.BAD_REQUEST).json("Wrong password or email")
 
         const token = jwt.sign(serializedUser(data), process.env.JWT_SECRET_KEY, {expiresIn: "1d"})
@@ -58,6 +57,14 @@ const login = (req, res)=>{
            
     })
 }
+const logout = (req, res)=> {
+    res.clearCookie('jwt', {
+        httponly: true, 
+        sameSite: 'none', 
+        maxAge: 24 * 60 * 60 * 1000,
+        // secure: true //when going online or using in chrome uncomment this line
+    }).status(StatusCodes.OK).json("user has been logged out")
+}
 
 function serializedUser(user){
     return {
@@ -68,5 +75,6 @@ function serializedUser(user){
 }
 module.exports = {
     registerUser,
-    login
+    login,
+    logout
 }
