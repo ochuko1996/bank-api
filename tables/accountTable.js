@@ -1,4 +1,5 @@
-const db = require('../util/db')
+const db = require('../util/db');
+const { dynamicTable } = require('../util/dynamicTable');
 const sql = `
     CREATE TABLE IF NOT EXISTS account (
       id INT(11) AUTO_INCREMENT PRIMARY KEY  NOT NULL,
@@ -13,10 +14,11 @@ const sql = `
     ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
   `;
 
-const accountTable = ()=>{
-  db.query(sql, ( err, result)=> {
-    if(err)console.log(err);
-  })
+// const accountTable = ()=>{
+//   db.query(sql, ( err, result)=> {
+//     if(err)console.log(err);
+//   })
 
-}
+// }
+const accountTable = dynamicTable(sql)
 module.exports = accountTable

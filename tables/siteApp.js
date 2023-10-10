@@ -1,4 +1,5 @@
 const db = require('../util/db')
+const { dynamicTable } = require('../util/dynamicTable')
 
 const sql = `CREATE TABLE IF NOT EXISTS site_app (
   id int(255) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -30,11 +31,6 @@ const sql = `CREATE TABLE IF NOT EXISTS site_app (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 `
 
-const siteAppTable = ()=>{
-    db.query(sql, (err, result)=>{
-        if(err) console.log(err);
-        // console.log("site app table created");
-    })
-}
+const siteAppTable = dynamicTable(sql)
 
 module.exports = siteAppTable

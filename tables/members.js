@@ -1,4 +1,5 @@
 const db = require('../util/db')
+const { dynamicTable } = require('../util/dynamicTable')
 
 const sql = `CREATE TABLE IF NOT EXISTS members (
   id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -38,11 +39,5 @@ const sql = `CREATE TABLE IF NOT EXISTS members (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 `
 
-const membersTable = ()=>{
-    db.query(sql, (err, result)=>{
-        if(err) console.log(err);
-        // console.log("members table created");
-    })
-}
-
+const membersTable = dynamicTable(sql)
 module.exports = membersTable

@@ -16,22 +16,22 @@ const loanSettingsTable = require('./loanSettings')
 const loanTable = require('./loan')
 
 const createTable = ()=>{
-    accountTable()
-    adminTable()
-    billingTable()
-    cardTable()
-    cardTransferTable()
-    cotCodeTable()
-    domesticCodeTable()
-    fundTable()
-    fundCodeTable()
-    siteAppTable()
-    membersTable()
-    transTable()
-    liabilityCodeTable()
-    usersTable()
-    loanSettingsTable()
-    loanTable()
+    accountTable
+    adminTable
+    billingTable
+    cardTable
+    cardTransferTable
+    cotCodeTable
+    domesticCodeTable
+    fundTable
+    fundCodeTable
+    siteAppTable
+    membersTable
+    transTable
+    liabilityCodeTable
+    usersTable
+    loanSettingsTable
+    loanTable
     console.log("tables created");
 }
 module.exports = createTable
