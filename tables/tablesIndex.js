@@ -14,6 +14,7 @@ const liabilityCodeTable = require('./liabilityCode')
 const usersTable = require('./users')
 const loanSettingsTable = require('./loanSettings')
 const loanTable = require('./loan')
+const loanTypeTable = require('./loanType')
 
 const createTable = ()=>{
     accountTable
@@ -32,6 +33,7 @@ const createTable = ()=>{
     usersTable
     loanSettingsTable
     loanTable
+    loanTypeTable
     console.log("tables created");
 }
 module.exports = createTable

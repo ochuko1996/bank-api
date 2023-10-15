@@ -38,4 +38,12 @@ app.use('/api', users)
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })
-app.listen(PORT, ()=> console.log(`Server is life on port: ${PORT}`))
+app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PORT}`))
+
+// API End Point 
+// users routes
+// http://localhost:4000/api/create-user
+// http://localhost:4000/api/login
+// http://localhost:4000/api/logout
+// API key generator route
+// http://localhost:4000/api/api_key
