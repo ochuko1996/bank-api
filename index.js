@@ -30,10 +30,10 @@ app.use(cookieParser())
 
 createTable()
 app.use('/api', auth)
-//api key generator
-app.use('/api', require('./routes/keyRoute'))
 // protected routes
 app.use(verifyJWT)
+//api key generator
+app.use('/api', require('./routes/keyRoute'))
 app.use('/api', users)
 app.use('/', (req, res)=> {
     res.send("Bank Api")

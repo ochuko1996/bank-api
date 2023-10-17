@@ -39,13 +39,13 @@ const login =   (req, res)=>{
     const {email, password} = req.body
     const sql = `SELECT * FROM users WHERE email = ?`
 
-    db.query(sql, [email], async(err, result)=>{
+    db.query(sql, [email], (err, result)=>{
         if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("someting went wrong")
         if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("user not found")
 
         const data = result[0]
         
-        const checkPassword = await bcrypt.compare(password, data.password)
+        const checkPassword = bcrypt.compareSync(password, data.password)
         console.log(password, data.password, checkPassword);
         if(!checkPassword) return res.status(StatusCodes.BAD_REQUEST).json("Wrong password or email")
 
@@ -56,7 +56,10 @@ const login =   (req, res)=>{
             maxAge: 24 * 60 * 60 * 1000,
             // secure: true //when going online or using in chrome uncomment this line
         })
-        return res.status(StatusCodes.ACCEPTED).json({token, user: serializedUser(data)})
+        return res.status(StatusCodes.ACCEPTED).json({
+            token, 
+            user: serializedUser(data),
+        })
            
     })
 }
