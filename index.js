@@ -14,7 +14,7 @@ const auth = require('./routes/authRoute')
 const verifyJWT = require('./middleware/verifyJWT')
 const corsOptions = require('./config/corsOptions')
 const users = require('./routes/usersRoute')
-
+const site_app = require('./routes/siteAppRoute')
 //middleware for credentials
 // handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
@@ -35,6 +35,7 @@ app.use(verifyJWT)
 //api key generator
 app.use('/api', require('./routes/keyRoute'))
 app.use('/api', users)
+app.use('/api/site_app', site_app)
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })
@@ -47,3 +48,5 @@ app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PO
 // http://localhost:4000/api/logout
 // API key generator route
 // http://localhost:4000/api/api_key
+// Site App
+// http://localhost:4000/api/site_app

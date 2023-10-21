@@ -27,7 +27,8 @@ const sql = `CREATE TABLE IF NOT EXISTS site_app (
   mail_sendername varchar(255) NOT NULL,
   mail_password varchar(255) NOT NULL,
   site_chat text NOT NULL,
-  host_username varchar(255) NOT NULL
+  host_username varchar(255) NOT NULL,
+  api_key varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 `
 

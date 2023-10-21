@@ -15,7 +15,7 @@ const verifyJWT = (req, res, next)=> {
         (err, decoded)=>{
             if(err) return res.status(StatusCodes.FORBIDDEN)
             req.user = decoded
-            console.log(req.user);
+            // console.log(req.user);
             next()
         }
     )

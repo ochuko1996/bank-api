@@ -9,12 +9,11 @@ const keyGenerator = (req, res)=>{
   const cookies = req.cookies
   // check if cookies exist
   if(!cookies?.jwt) return res.status(StatusCodes.UNAUTHORIZED).json('no cookies with jwt')
-  // console.log(cookies.jwt);
+  console.log(cookies.jwt);
   
   // generate keys
   const api_key = formatUUID(uuidv4(), "pk")
   const secret_key = formatUUID(uuidv4(), "sk")
-
   // hash secret key
   const hashSecretKey = hashKeys(secret_key)
 
@@ -28,7 +27,7 @@ const keyGenerator = (req, res)=>{
     ]
     db.query(sql, values, (err, result)=>{
         if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-        return res.status(StatusCodes.OK).json(result)
+        return res.status(StatusCodes.OK).json("generated api successfully")
     })
 }
 // util hash func
