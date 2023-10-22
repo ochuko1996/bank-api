@@ -46,7 +46,7 @@ const login =   (req, res)=>{
         const data = result[0]
         
         const checkPassword = bcrypt.compareSync(password, data.password)
-        console.log(password, data.password, checkPassword);
+
         if(!checkPassword) return res.status(StatusCodes.BAD_REQUEST).json("Wrong password or email")
 
         const token = jwt.sign(serializedUser(data), process.env.JWT_SECRET_KEY, {expiresIn: "1d"})
