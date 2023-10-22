@@ -49,4 +49,5 @@ app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PO
 // API key generator route
 // http://localhost:4000/api/api_key
 // Site App
-// http://localhost:4000/api/site_app
+// http://localhost:4000/api/site_app -- get and post
+// http://localhost:4000/api/site_app/:id -- delete put get 
