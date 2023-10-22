@@ -1,13 +1,13 @@
-const { addSiteApp, deleteSiteApp } = require('../controllers/siteAppController')
+const { addSiteApp, deleteSiteApp, getAllSiteApp, getSiteApp, updateSiteApp } = require('../controllers/siteAppController')
 
 const router = require('express').Router()
 
 router.route('/')
     .post(addSiteApp)
-    .get()
+    .get(getAllSiteApp)
 router.route('/:id')
-    .get()
-    .put()
+    .get(getSiteApp)
+    .put(updateSiteApp)
     .delete(deleteSiteApp)
 
 module.exports = router
