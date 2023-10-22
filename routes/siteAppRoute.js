@@ -1,4 +1,4 @@
-const { addSiteApp } = require('../controllers/siteAppController')
+const { addSiteApp, deleteSiteApp } = require('../controllers/siteAppController')
 
 const router = require('express').Router()
 
@@ -8,6 +8,6 @@ router.route('/')
 router.route('/:id')
     .get()
     .put()
-    .delete()
+    .delete(deleteSiteApp)
 
 module.exports = router
