@@ -17,6 +17,7 @@ const users = require('./routes/usersRoute')
 const site_app = require('./routes/siteAppRoute')
 const members = require('./routes/membersRoute')
 const account = require('./routes/accountRoute')
+const billing = require('./routes/billingRoute')
 //middleware for credentials
 // handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
@@ -40,7 +41,7 @@ app.use('/api', users)
 app.use('/api/site_app', site_app)
 app.use('/api/members', members)
 app.use('/api/account', account)
-
+app.use('/api/billing', billing)
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })
@@ -61,6 +62,8 @@ app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PO
 // http://localhost:4000/api/members/:siteId/:memberId -- PUT, DELETE and GET
 // Account Route
 // http://localhost:4000/api/account/ -- GET
-// http://localhost:4000/api/account/:memberId -- POST and GET
+// http://localhost:4000/api/account/:memberId -- POST
 // http://localhost:4000/api/account/:memberId/:accountId -- PUT, DELETE and GET
-
+// Billing Route
+// http://localhost:4000/api/billing/:siteId -- POST and GET
+// http://localhost:4000/api/members/:siteId/:memberId -- PUT, DELETE and GET
