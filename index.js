@@ -37,7 +37,7 @@ app.use('/api', auth)
 app.use(verifyJWT)
 //api key generator
 app.use('/api', require('./routes/keyRoute'))
-app.use('/api', users)
+app.use('/api/users', users)
 app.use('/api/site_app', site_app)
 app.use('/api/members', members)
 app.use('/api/account', account)
@@ -48,22 +48,25 @@ app.use('/', (req, res)=> {
 app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PORT}`))
 
 // API End Point 
-// users routes
+// Auth Routes
 // http://localhost:4000/api/create-user --- POST
 // http://localhost:4000/api/login --- POST
 // http://localhost:4000/api/logout -- POST
 // API key generator route
 // http://localhost:4000/api/api_key
+// Users Routes
+// http://localhost:4000/api/users --- GET
+// http://localhost:4000/api/users/:id --- GET PUT AND DELETE
 // Site App Routes
 // http://localhost:4000/api/site_app -- GET and POST
 // http://localhost:4000/api/site_app/:id -- DELETE PUT and GET 
-// Members Route
+// Members Routes
 // http://localhost:4000/api/members/:siteId -- POST and GET
 // http://localhost:4000/api/members/:siteId/:memberId -- PUT, DELETE and GET
-// Account Route
+// Account Routes
 // http://localhost:4000/api/account/ -- GET
 // http://localhost:4000/api/account/:memberId -- POST
 // http://localhost:4000/api/account/:memberId/:accountId -- PUT, DELETE and GET
-// Billing Route
+// Billing Routes
 // http://localhost:4000/api/billing/:siteId -- POST and GET
 // http://localhost:4000/api/members/:siteId/:memberId -- PUT, DELETE and GET
