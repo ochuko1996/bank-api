@@ -18,6 +18,7 @@ const site_app = require('./routes/siteAppRoute')
 const members = require('./routes/membersRoute')
 const account = require('./routes/accountRoute')
 const billing = require('./routes/billingRoute')
+const billingCode = require('./routes/billingCodeRoute')
 //middleware for credentials
 // handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
@@ -42,6 +43,7 @@ app.use('/api/site_app', site_app)
 app.use('/api/members', members)
 app.use('/api/account', account)
 app.use('/api/billing', billing)
+app.use('/api/billing_code', billingCode)
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })
