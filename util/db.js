@@ -1,5 +1,5 @@
-const mysql = require('mysql')
-const util = require('util')
+import mysql from 'mysql'
+import util from "util"
 
 const pool = mysql.createPool({
     host: 'localhost',
@@ -10,4 +10,5 @@ const pool = mysql.createPool({
 
 pool.query = util.promisify(pool.query)
 
-module.exports = pool
+const db = pool
+export default db 

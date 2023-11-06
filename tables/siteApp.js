@@ -1,5 +1,4 @@
-const db = require('../util/db')
-const { dynamicTable } = require('../util/dynamicTable')
+import dynamicTable from "../util/dynamicTable.js"
 
 const sql = `CREATE TABLE IF NOT EXISTS site_app (
   id int(255) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -34,4 +33,4 @@ const sql = `CREATE TABLE IF NOT EXISTS site_app (
 
 const siteAppTable = dynamicTable(sql)
 
-module.exports = siteAppTable
+export default siteAppTable

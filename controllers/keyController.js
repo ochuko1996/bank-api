@@ -1,8 +1,9 @@
-const { StatusCodes } = require('http-status-codes')
-const db = require('../util/db')
-const {v4: uuidv4} = require('uuid')
-const bcrypt = require('bcryptjs')
-const keyGenerator = (req, res)=>{
+import { StatusCodes } from 'http-status-codes'
+import db from '../util/db.js'
+import {v4 as uuidv4} from 'uuid'
+import bcrypt from 'bcryptjs'
+
+export const keyGenerator = (req, res)=>{
     const id = req.user.id
 
     const cookies = req.cookies
@@ -50,4 +51,4 @@ function formatUUID(uuid, prefix) {
   return `${prefix}_` + uuid.replace(/-/g, '');
 }
 
-module.exports = keyGenerator
+// export default keyGenerator

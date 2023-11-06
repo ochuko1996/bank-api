@@ -1,6 +1,8 @@
-const { addBilling, getBillings, getBilling, updateBilling, deleteBilling } = require('../controllers/billingController')
+import { Router } from 'express'
+const router = Router()
 
-const router = require('express').Router()
+import { addBilling, getBillings, getBilling, updateBilling, deleteBilling } from '../controllers/billingController.js'
+
 
 router.route('/:siteId')
     .post(addBilling)
@@ -10,4 +12,4 @@ router.route('/:siteId/:billingId')
     .put(updateBilling)
     .delete(deleteBilling)
 
-module.exports = router
+export default router

@@ -1,17 +1,14 @@
-const accountTable = require('./accountTable')
-const adminTable = require('./adminTable')
-const billingTable = require('./biilingTable')
-const billingCodeTable = require("./billingCode")
-const cardTable = require('./cardTable')
-const cardTransferTable = require('./cardTransfer')
-const fundTable = require('./fundTable')
-const siteAppTable = require('./siteApp')
-const membersTable = require('./members')
-const transTable = require('./trans')
-const usersTable = require('./users')
-const loanSettingsTable = require('./loanSettings')
-const loanTable = require('./loan')
-const loanTypeTable = require('./loanType')
+import accountTable from './accountTable.js';
+import adminTable from './adminTable.js';
+import billingTable from './billingTable.js';  
+import billingCodeTable from './billingCode.js';
+import cardTable from './cardTable.js';
+import cardTransferTable from './cardTransfer.js';
+import transactionTable from './transactionTable.js';
+import siteAppTable from './siteApp.js';
+import membersTable from './members.js';
+import usersTable from './users.js';
+
 
 const createTable = ()=>{
     accountTable
@@ -20,14 +17,10 @@ const createTable = ()=>{
     billingCodeTable
     cardTable
     cardTransferTable
-    fundTable
+    transactionTable
     siteAppTable
     membersTable
-    transTable
     usersTable
-    loanSettingsTable
-    loanTable
-    loanTypeTable
     console.log("tables created");
 }
-module.exports = createTable
+export default createTable

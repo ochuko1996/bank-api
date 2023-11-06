@@ -1,6 +1,6 @@
-const { StatusCodes } = require('http-status-codes')
-const bcrypt = require('bcryptjs')
-const db = require('../util/db')
+import { StatusCodes } from 'http-status-codes'
+import bcrypt from 'bcryptjs'
+import db from '../util/db.js'
 
 const addSiteApp = (req, res)=>{
     const {sitename, sitephone,	siteaddress, siteemail} = req.body
@@ -125,7 +125,7 @@ const deleteSiteApp = (req, res)=>{
     })
 }
 
-module.exports = {
+export {
     addSiteApp,
     deleteSiteApp,
     getAllSiteApp,

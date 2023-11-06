@@ -1,6 +1,8 @@
-const { addAccount, updateAccount, deletetAccount, getAccount, getAccounts } = require('../controllers/accountController')
+import { Router } from 'express'
+const router = Router()
 
-const router = require('express').Router()
+import { addAccount, updateAccount, deletetAccount, getAccount, getAccounts } from '../controllers/accountController.js'
+
 
 router.route('/')
     .get(getAccounts)
@@ -10,4 +12,4 @@ router.route('/:memberId/:accountId')
     .put(updateAccount)
     .get(getAccount)
     .delete(deletetAccount)
-module.exports = router
+export default router

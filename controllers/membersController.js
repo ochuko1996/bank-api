@@ -1,5 +1,5 @@
-const db = require('../util/db')
-const {StatusCodes} = require('http-status-codes')
+import db from '../util/db.js'
+import {StatusCodes} from 'http-status-codes'
 
 const addMember = (req, res)=>{
     const payload = req.body
@@ -106,7 +106,7 @@ const updateMember = (req, res)=>{
     })
 }
 
-module.exports = {
+export {
     addMember,
     getMembers,
     getMember, 

@@ -1,6 +1,9 @@
-const { addMember, getMembers, getMember, updateMember, deleteMember } = require('../controllers/membersController')
+import { Router } from 'express'
+const router = Router()
 
-const router = require('express').Router()
+import { addMember, getMembers, getMember, updateMember, deleteMember } from '../controllers/membersController.js'
+
+
 
 router.route('/:siteId')
     .get(getMembers)
@@ -10,4 +13,4 @@ router.route('/:siteId/:memberId')
     .put(updateMember)
     .delete(deleteMember)
 
-module.exports = router
+export default router

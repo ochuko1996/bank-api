@@ -1,6 +1,5 @@
-const db = require('../util/db')
-const { StatusCodes } = require('http-status-codes')
-
+import db from '../util/db.js'
+import { StatusCodes } from 'http-status-codes'
 const getUsers = (req, res)=>{
     // const id = req.user.id
     const sql = `SELECT * FROM users`
@@ -51,7 +50,7 @@ const deleteUser = (req, res)=>{
 }
 
 
-module.exports = {
+export {
     getUsers,
     getUser,
     updateUser,

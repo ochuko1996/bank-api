@@ -1,4 +1,4 @@
-const db = require('./db')
+import db from './db.js'
 
 const dynamicTable = (sql)=>{
     db.query(sql, (err, result)=>{
@@ -7,4 +7,4 @@ const dynamicTable = (sql)=>{
     })
 }
 
-module.exports ={ dynamicTable}
+export default dynamicTable

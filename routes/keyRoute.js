@@ -1,7 +1,8 @@
-const router = require('express').Router()
+import { Router } from 'express'
+const router = Router()
 
-const apiKey = require('../controllers/keyController')
+import {keyGenerator} from '../controllers/keyController.js'
 
-router.post('/api_key', apiKey)
+router.post('/api_key', keyGenerator)
 
-module.exports = router
+export default router

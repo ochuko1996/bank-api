@@ -1,5 +1,5 @@
-const db = require('../util/db')
-const {StatusCodes} = require('http-status-codes')
+import { StatusCodes } from "http-status-codes"
+import db from "../util/db.js"
 
 let billingCode = ""
 // can one billing add more than one billing code?
@@ -110,7 +110,7 @@ const randomNumber = ()=>{
 }
 
 
-module.exports = {
+export {
     addBillingCode,
     getBillingCodes,
     getBillingCode,

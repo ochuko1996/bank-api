@@ -1,6 +1,7 @@
-const { addSiteApp, deleteSiteApp, getAllSiteApp, getSiteApp, updateSiteApp } = require('../controllers/siteAppController')
+import { addSiteApp, deleteSiteApp, getAllSiteApp, getSiteApp, updateSiteApp } from '../controllers/siteAppController.js'
 
-const router = require('express').Router()
+import { Router } from 'express'
+const router = Router()
 
 router.route('/')
     .post(addSiteApp)
@@ -10,4 +11,4 @@ router.route('/:id')
     .put(updateSiteApp)
     .delete(deleteSiteApp)
 
-module.exports = router
+export default router

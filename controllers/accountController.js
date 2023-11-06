@@ -1,6 +1,5 @@
-const { StatusCodes } = require('http-status-codes')
-const db = require('../util/db')
-
+import db from "../util/db.js"
+import { StatusCodes } from "http-status-codes"
 const addAccount = (req, res)=>{
     const payload = req.body
     const memberId = req.params.memberId
@@ -102,7 +101,7 @@ const getAccounts = (req, res)=>{
     })
 }
 
-module.exports = {
+export {
     addAccount,
     getAccount,
     updateAccount, 

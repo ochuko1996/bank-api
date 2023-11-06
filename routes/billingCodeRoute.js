@@ -1,6 +1,7 @@
-const { addBillingCode, deleteBillingCode, updateBillingCode, getBillingCode, getBillingCodes } = require('../controllers/billingCodeController')
+import { Router } from 'express'
+const router = Router()
+import { addBillingCode, deleteBillingCode, updateBillingCode, getBillingCode, getBillingCodes } from '../controllers/billingCodeController.js'
 
-const router = require('express').Router()
 
 router.route('/:billingId')
     .post(addBillingCode)
@@ -11,4 +12,4 @@ router.route('/:billingId/:billingCodeId')
     .put(updateBillingCode)
     .get(getBillingCode)
 
-module.exports = router
+export default router

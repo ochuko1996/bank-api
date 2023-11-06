@@ -1,8 +1,7 @@
-const { StatusCodes } = require('http-status-codes')
-const db = require('../util/db')
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-
+import { StatusCodes } from 'http-status-codes'
+import db from '../util/db.js'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 const registerUser =  (req, res)=>{
     const {name, email, phone, username, password} = req.body
@@ -80,7 +79,7 @@ function serializedUser(user){
         name: user.name
     }
 }
-module.exports = {
+export {
     registerUser,
     login,
     logout

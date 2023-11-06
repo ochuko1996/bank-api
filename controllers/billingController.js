@@ -1,5 +1,5 @@
-const { StatusCodes } = require('http-status-codes')
-const db = require('../util/db')
+import { StatusCodes } from "http-status-codes"
+import db from "../util/db.js"
 
 const addBilling = (req, res)=>{
     const siteAppId = req.params.siteId
@@ -92,7 +92,7 @@ const deleteBilling = (req, res)=>{
     })
 }
 
-module.exports = {
+export {
     addBilling,
     getBilling, 
     getBillings,
