@@ -79,3 +79,6 @@ app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PO
 // Billing Code Routes
 // http://localhost:4000/api/billingId/ -- POST and GET
 // http://localhost:4000/api/billingId/:billingCodeId -- PUT DELETE and GET
+// Transaction Routes
+// http://localhost:4000/api/memberId/ -- POST and GET
+// http://localhost:4000/api/memberId/:transactionId -- PUT DELETE and GET
