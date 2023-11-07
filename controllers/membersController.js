@@ -1,13 +1,12 @@
 import db from '../util/db.js'
 import {StatusCodes} from 'http-status-codes'
+import DynamicSql from '../util/dynamicSql.js'
 
 const addMember = (req, res)=>{
     const payload = req.body
     const siteAppId = req.params.siteId
 
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
+    const MemberProp = new DynamicSql(payload)
     
     const sql = `SELECT api_key FROM site_app WHERE id = ?`
     const values = [siteAppId]
@@ -25,9 +24,9 @@ const addMember = (req, res)=>{
             if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
             
             if(result[0]) return res.status(StatusCodes.CONFLICT).json('member already exist')
-            const sql = `INSERT INTO members (${fieldNames.join(', ')}, site_app_id, api_key) VALUES (?)`
+            const sql = `INSERT INTO members (${MemberProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES (?)`
             const values = [
-                ...fieldValues, 
+                ...MemberProp.fieldValues(), 
                 siteAppId, 
                 data.api_key
             ]
@@ -89,12 +88,10 @@ const updateMember = (req, res)=>{
     const payload = req.body
 
     // construct the SQL dynamically
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
+    const MemberProp = new DynamicSql(payload)
 
-    const sql = `UPDATE members SET ${placeholder} WHERE site_app_id = ? AND id = ?`
-    const values = [...fieldValues, siteAppId, memberId]
+    const sql = `UPDATE members SET ${MemberProp.placeholder()} WHERE site_app_id = ? AND id = ?`
+    const values = [...MemberProp.fieldValues(), siteAppId, memberId]
 
     db.query(sql, values, (err, result)=>{
         if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')

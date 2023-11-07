@@ -2,15 +2,13 @@ import { StatusCodes } from 'http-status-codes'
 import db from '../util/db.js'
 
 import dateTime from 'date-time'
+import DynamicSql from '../util/dynamicSql.js'
 const addTransaction = (req, res)=>{
     const memberId = req.params.memberId
     const payload = req.body
     const date_time = dateTime()
     // construct sql dynamically
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
-    
+    const TransactionProp = new DynamicSql(payload)    
     const sql = `SELECT site_app_id, api_key FROM members WHERE id = ?`
     const values = [memberId]
     db.query(sql, values, (err, result)=>{
@@ -19,8 +17,8 @@ const addTransaction = (req, res)=>{
         // check if member exist
         if(!data) return res.status(StatusCodes.NOT_FOUND).json(`member with id: ${memberId} not found`)
         
-        const sql = `INSERT INTO transaction (${fieldNames.join(', ')}, date_time, api_key, secret_key, member_id) VALUES(?)`
-        const values = [...fieldValues, date_time, data.api_key, data.site_app_id, memberId]
+        const sql = `INSERT INTO transaction (${TransactionProp.fieldNames().join(', ')}, date_time, api_key, secret_key, member_id) VALUES(?)`
+        const values = [...TransactionProp.fieldValues(), date_time, data.api_key, data.site_app_id, memberId]
     
         db.query(sql, [values], (err, result)=>{
             if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
@@ -73,13 +71,9 @@ const updateTransaction = (req, res)=>{
     const transactionId = req.params.transactionId
     const payload = req.body
     // construct sql dynamically
-
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
-
-    const sql = `UPDATE transaction SET ${placeholder} WHERE member_id = ? AND id = ?`
-    const values = [...fieldValues, memberId, transactionId]
+    const TransactionProp = new DynamicSql(payload)
+    const sql = `UPDATE transaction SET ${TransactionProp.placeholder()} WHERE member_id = ? AND id = ?`
+    const values = [...TransactionProp.fieldValues(), memberId, transactionId]
 
     db.query(sql, values, (err, result)=>{
         if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)

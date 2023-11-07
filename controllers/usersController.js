@@ -1,5 +1,6 @@
 import db from '../util/db.js'
 import { StatusCodes } from 'http-status-codes'
+import DynamicSql from '../util/dynamicSql.js'
 const getUsers = (req, res)=>{
     // const id = req.user.id
     const sql = `SELECT * FROM users`
@@ -24,12 +25,10 @@ const updateUser = (req, res)=>{
      const userId = req.params.id 
      const payload = req.body
 
-     const fieldNames = Object.keys(payload)
-     const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-     const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
-    const sql = `UPDATE users SET ${placeholder}  WHERE id = ?`
+    const UserProp = new DynamicSql(payload)
+    const sql = `UPDATE users SET ${UserProp.placeholder()}  WHERE id = ?`
     const values = [userId]
-    db.query(sql, [...fieldValues, values], (err, result)=>{
+    db.query(sql, [...UserProp.fieldValues(), values], (err, result)=>{
         if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
 
         if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`user with id: ${userId} not found`)

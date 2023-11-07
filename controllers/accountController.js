@@ -1,12 +1,12 @@
 import db from "../util/db.js"
 import { StatusCodes } from "http-status-codes"
+import DynamicSql from "../util/dynamicSql.js"
 const addAccount = (req, res)=>{
     const payload = req.body
     const memberId = req.params.memberId
 
     // construct a dynamic sql
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
+    const AccountProp = new DynamicSql(payload)
     const  sql = `SELECT * FROM members WHERE id = ?`
     const values = [memberId]
 
@@ -24,8 +24,8 @@ const addAccount = (req, res)=>{
             if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong account")
 
             if(result[0]) return res.status(StatusCodes.CONFLICT).json('account already exist')
-            const sql = `INSERT INTO account (${fieldNames.join(', ')}, memberId, username) VALUES(?)`
-            const values = [...fieldValues, memberId, memberData.username]
+            const sql = `INSERT INTO account (${AccountProp.fieldNames().join(', ')}, memberId, username) VALUES(?)`
+            const values = [...AccountProp.fieldValues(), memberId, memberData.username]
             db.query(sql, [values], (err, result)=>{
                 if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
 

@@ -1,11 +1,12 @@
 import { StatusCodes } from "http-status-codes"
 import db from "../util/db.js"
+import DynamicSql from "../util/dynamicSql.js"
 
 const addBilling = (req, res)=>{
     const siteAppId = req.params.siteId
     const payload = req.body
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
+ 
+    const BillingProp = new DynamicSql(payload)
 
     const sql = `SELECT api_key FROM site_app WHERE id = ?`
     const values = [siteAppId]
@@ -15,8 +16,8 @@ const addBilling = (req, res)=>{
         // check if site app exist 
         if (!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`site app with ${siteAppId} not found`)
 
-        const sql = `INSERT INTO billing (${fieldNames.join(', ')}, site_app_id, api_key) VALUES(?)`
-        const values = [...fieldValues, siteAppId, result[0].api_key]
+        const sql = `INSERT INTO billing (${BillingProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES(?)`
+        const values = [...BillingProp.fieldValues(), siteAppId, result[0].api_key]
         db.query(sql, [values], (err, result)=>{
             if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
             console.log(values);
@@ -59,13 +60,11 @@ const updateBilling = (req, res)=>{
     const billingId = req.params.billingId
     const payload = req.body
 
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
+    const BillingProp = new DynamicSql(payload)
     
 
-    const sql = `UPDATE billing SET ${placeholder} WHERE site_app_id = ? AND id = ?`
-    const values = [...fieldValues, siteAppId, billingId]
+    const sql = `UPDATE billing SET ${BillingProp.placeholder()} WHERE site_app_id = ? AND id = ?`
+    const values = [...BillingProp.fieldValues(), siteAppId, billingId]
 
 
     db.query(sql, values, (err, result)=>{

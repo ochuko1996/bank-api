@@ -1,10 +1,14 @@
 import { StatusCodes } from 'http-status-codes'
 import bcrypt from 'bcryptjs'
 import db from '../util/db.js'
+import DynamicSql from '../util/dynamicSql.js'
 
 const addSiteApp = (req, res)=>{
-    const {sitename, sitephone,	siteaddress, siteemail} = req.body
+    // const {sitename, sitephone,	siteaddress, siteemail} = req.body
     const id = req.user.id
+
+    const SiteAppProps = new DynamicSql(req.body)
+    
     const values = [id]
     const sql = `SELECT secret_key, api_key, secret_key_hash  FROM users WHERE id = ?`
     db.query(sql, values, (err, result)=>{
@@ -15,12 +19,9 @@ const addSiteApp = (req, res)=>{
         const compareSecretKey = bcrypt.compare(data.secret_key, data.secret_key_hash)
         if (!compareSecretKey)  return res.status(StatusCodes.FORBIDDEN).json('secret key is incorrect or does not exist')
         
-        const sql = `INSERT INTO site_app (sitename, sitephone, siteaddress, siteemail, api_key) VALUE(?)`
+        const sql = `INSERT INTO site_app (${SiteAppProps.fieldNames().join(', ')}, api_key) VALUE(?)`
         const values = [
-            sitename, 
-            sitephone, 
-            siteaddress, 
-            siteemail,
+            ...SiteAppProps.fieldValues(),
             data.api_key
         ]
         db.query(sql, [values], (err, result)=> {
@@ -78,7 +79,8 @@ const updateSiteApp = (req, res)=>{
     const id = req.user.id
     const siteAppId = req.params.id
     const sql = `SELECT * FROM users WHERE id = ?`
-    const updateData = req.body
+    // construct sql dynamically
+    const SiteAppProps = new DynamicSql(req.body)
     const values = [id]
     db.query(sql, values, (err, result)=>{
         const userData = result[0]
@@ -86,13 +88,9 @@ const updateSiteApp = (req, res)=>{
         // check if user exists
         if(userData.length === 0) return res.status(StatusCodes.UNAUTHORIZED).json('user not found')
     
-        // construct the SQL dynamically
-        const fieldNames = Object.keys(updateData)
-        const updatedValues = fieldNames.map(fieldName => updateData[fieldName])
-        const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
         // update site app
-        const sql = `UPDATE site_app SET ${placeholder} WHERE api_key = ? AND id = ?`
-        const values = [...updatedValues, userData.api_key, siteAppId]
+        const sql = `UPDATE site_app SET ${SiteAppProps.placeholder()} WHERE api_key = ? AND id = ?`
+        const values = [...SiteAppProps.fieldValues(), userData.api_key, siteAppId]
         db.query(sql, values, (err, result)=>{
             if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
             // check if site app exist
