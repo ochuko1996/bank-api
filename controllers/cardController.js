@@ -41,7 +41,6 @@ const getCard = (req, res)=>{
     const siteAppId = req.params.siteId
     const memberId = req.params.memberId
     
-    // if(memberId === "" || memberId === null || memberId.length === 0 || !req.url) return res.status(StatusCodes.NOT_FOUND).json(`member with id: ${memberId}`)
     const sql = `SELECT * FROM card WHERE member_id = ? AND site_app_id = ?`
     const values = [memberId, siteAppId]
     db.query(sql, values, (err, result)=>{
@@ -54,7 +53,7 @@ const getCard = (req, res)=>{
     })
 }
 const deleteCard = (req, res)=>{
-     const siteAppId = req.params.siteId
+    const siteAppId = req.params.siteId
     const memberId = req.params.memberId
     
     const sql = `DELETE FROM card WHERE member_id = ? AND site_app_id = ?`
@@ -69,7 +68,7 @@ const deleteCard = (req, res)=>{
     })
 }
 const updateCard = (req, res)=>{
-     const siteAppId = req.params.siteId
+    const siteAppId = req.params.siteId
     const memberId = req.params.memberId
     const payload = req.body
 

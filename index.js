@@ -22,6 +22,7 @@ import billing from './routes/billingRoute.js';
 import billingCode from './routes/billingCodeRoute.js';
 import transaction from './routes/transactionRoute.js';
 import card from './routes/cardRoute.js'
+import cardTransfer from './routes/cardTransferRoute.js'
 //middleware for credentials
 // handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
@@ -49,6 +50,7 @@ app.use('/api/billing', billing)
 app.use('/api/billing_code', billingCode)
 app.use('/api/transaction', transaction)
 app.use('/api/card', card)
+app.use('/api/card_transfer', cardTransfer)
 // root route
 app.use('/', (req, res)=> {
     res.send("Bank Api")
@@ -88,3 +90,7 @@ app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PO
 // http://localhost:4000/api/card/:siteId/ -- GET all with siteId
 // http://localhost:4000/api/card/:siteId/:memberId -- POST
 // http://localhost:4000/api/card/:siteId/:memberId -- PUT DELETE and GET
+// Card Transfer Routes
+// http://localhost:4000/api/card_transfer/:siteId/:memberId -- POST
+// http://localhost:4000/api/card_transfer/:siteId/:memberId -- GET 
+// http://localhost:4000/api/card_transfer/:siteId/:cardTransferId -- PUT DELETE and GET
