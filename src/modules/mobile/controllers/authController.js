@@ -1,14 +1,42 @@
 import db from "../../../../util/db.js";
 import { StatusCodes } from "http-status-codes";
 import jwt from 'jsonwebtoken'
+import DynamicSql from "../../../../util/dynamicSql.js";
 
-const register = (req, res) =>{}
+const register = (req, res) =>{
+    const {email} = req.body
+    const {siteId, api_key} = req.query
+    const sql = `SELECT * FROM members WHERE email = ?`
+    const MemberProps = new DynamicSql(req.body)
+    db.query(sql,[email], (err, result)=>{
+        if(err) res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        
+        // check if member exist
+        if(result.length) return res.status(StatusCodes.CONFLICT).json("member already exist")
+
+        // create new member
+        // hash password
+        // const hashedPwd = bcrypt.hashSync(password, 10)
+        const sql = `INSERT INTO members (${MemberProps.fieldNames().join(', ')}, site_app_id, api_key) VALUE (?)`
+
+        const values = [
+            ...MemberProps.fieldValues(),
+            siteId,
+            api_key
+        ]
+        db.query(sql, [values], (err, result)=>{
+            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+            return res.status(StatusCodes.CREATED).json("member created")
+        })
+    })
+}
 const login =   (req, res)=>{
     const {email, password} = req.body
     
     const sql = `SELECT * FROM members WHERE email = ?`
     db.query(sql, [email], (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
+        // check for existing member
         if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("member not found")
 
         const data = result[0]

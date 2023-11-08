@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken'
 
 const registerUser =  (req, res)=>{
     const {name, email, phone, username, password} = req.body
-    console.log(req.body);
     const sql = `SELECT * FROM users WHERE email = ?`
     
     db.query(sql,[email], (err, result)=>{
