@@ -2,94 +2,124 @@ import { StatusCodes } from "http-status-codes"
 import db from '../../../../util/db.js'
 import DynamicSql from '../../../../util/dynamicSql.js'
 
-const addBilling = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const payload = req.body
- 
-    const BillingProp = new DynamicSql(payload)
+const addBilling = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const payload = req.body;
 
-    const sql = `SELECT api_key FROM site_app WHERE id = ?`
-    const values = [siteAppId]
+        const billingProp = new DynamicSql(payload);
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-        // check if site app exist 
-        if (!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`site app with ${siteAppId} not found`)
+        // Find API key for the given site app
+        const findApiKeySql = 'SELECT api_key FROM site_app WHERE id = ?';
+        const findApiKeyValues = [siteAppId];
+        const [apiKeyResult] = await db.query(findApiKeySql, findApiKeyValues);
 
-        const sql = `INSERT INTO billing (${BillingProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES(?)`
-        const values = [...BillingProp.fieldValues(), siteAppId, result[0].api_key]
-        db.query(sql, [values], (err, result)=>{
-            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
-            console.log(values);
+        if (!apiKeyResult[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json(`Site app with ID: ${siteAppId} not found`);
+        }
 
-            res.status(StatusCodes.CREATED).json("bill created successfully")
-        })
-    })
-}
+        // Insert billing record
+        const insertBillingSql = `INSERT INTO billing (${billingProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES(?)`;
+        const insertBillingValues = [...billingProp.fieldValues(), siteAppId, apiKeyResult[0].api_key];
+        const [insertResult] = await db.query(insertBillingSql, [insertBillingValues]);
 
-const getBillings = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const sql = `SELECT * FROM billing WHERE site_app_id = ?`
-    const values = [siteAppId]
+        if (insertResult.affectedRows > 0) {
+            return res.status(StatusCodes.CREATED).json('Billing created successfully');
+        } else {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
+const getBillings = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        // Find billings for the given site app
+        const findBillingsSql = 'SELECT * FROM billing WHERE site_app_id = ?';
+        const findBillingsValues = [siteAppId];
+        const [result] = await db.query(findBillingsSql, findBillingsValues);
 
-        res.status(StatusCodes.OK).json(result)
-    })
-}
-const getBilling = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const billingId = req.params.billingId
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    const sql = `SELECT * FROM billing WHERE site_app_id = ? AND id = ?`
-    const values = [siteAppId, billingId]
+const getBilling = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const billingId = req.params.billingId;
 
+        // Find billing by site app id and billing id
+        const findBillingSql = 'SELECT * FROM billing WHERE site_app_id = ? AND id = ?';
+        const findBillingValues = [siteAppId, billingId];
+        const [result] = await db.query(findBillingSql, findBillingValues);
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        if (!result[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No billing with ID: ${billingId}`);
+        }
 
-        // check if billings exist
-        if(!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`no billing with id: ${billingId}`)
-        res.status(StatusCodes.OK).json(result)
-    })
-}
-const updateBilling = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const billingId = req.params.billingId
-    const payload = req.body
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    const BillingProp = new DynamicSql(payload)
-    
+const updateBilling = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const billingId = req.params.billingId;
+        const payload = req.body;
 
-    const sql = `UPDATE billing SET ${BillingProp.placeholder()} WHERE site_app_id = ? AND id = ?`
-    const values = [...BillingProp.fieldValues(), siteAppId, billingId]
+        const billingProp = new DynamicSql(payload);
 
+        // Update billing by site app id and billing id
+        const updateBillingSql = `UPDATE billing SET ${billingProp.placeholder()} WHERE site_app_id = ? AND id = ?`;
+        const updateBillingValues = [...billingProp.fieldValues(), siteAppId, billingId];
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        // Execute the update query
+        const [result] = await db.query(updateBillingSql, updateBillingValues);
 
-        // check if billings exist
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`no billing with id: ${billingId}`)
-        res.status(StatusCodes.OK).json(`billing with id: ${billingId} was updated successfully`)
-    })
-}
-const deleteBilling = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const billingId = req.params.billingId
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No billing with ID: ${billingId}`);
+        }
 
-    const sql = `DELETE FROM billing WHERE site_app_id = ? AND id = ?`
-    const values = [siteAppId, billingId]
+        res.status(StatusCodes.OK).json(`Billing with ID: ${billingId} was updated successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+const deleteBilling = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const billingId = req.params.billingId;
 
-        // check if billings exist
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`no billing with id: ${billingId}`)
-        res.status(StatusCodes.OK).json(`billing with id: ${billingId} was deleted successfully`)
-    })
-}
+        // Delete billing by site app id and billing id
+        const deleteBillingSql = 'DELETE FROM billing WHERE site_app_id = ? AND id = ?';
+        const deleteBillingValues = [siteAppId, billingId];
+
+        // Execute the deletion query
+        const [result] = await db.query(deleteBillingSql, deleteBillingValues);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No billing with ID: ${billingId}`);
+        }
+
+        res.status(StatusCodes.OK).json(`Billing with ID: ${billingId} was deleted successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 export {
     addBilling,

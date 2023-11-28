@@ -3,3 +3,8 @@ USER=
 PASSWORD=
 JWT_SECRET_KEY=
 PEPPER=
+# mailjet
+apikey = 
+secretkey = 
+server = 
+port = 

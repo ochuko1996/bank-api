@@ -1,7 +1,7 @@
 import { Router } from 'express'
 const router = Router()
 
-import { addAccount, updateAccount, deletetAccount, getAccount, getAccounts } from '../controllers/accountController.js'
+import { addAccount, updateAccount, deleteAccount, getAccount, getAccounts } from '../controllers/accountController.js'
 import verifyJWt from '../../../middleware/verifyJWT.js'
 
 router.route('/')
@@ -11,5 +11,5 @@ router.route('/:memberId')
 router.route('/:memberId/:accountId')
     .put(verifyJWt, updateAccount)
     .get(verifyJWt, getAccount)
-    .delete(verifyJWt, deletetAccount)
+    .delete(verifyJWt, deleteAccount)
 export default router

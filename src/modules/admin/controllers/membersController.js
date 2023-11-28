@@ -2,106 +2,121 @@ import db from '../../../../util/db.js'
 import DynamicSql from '../../../../util/dynamicSql.js'
 import {StatusCodes} from 'http-status-codes'
 
-const addMember = (req, res)=>{
-    const payload = req.body
-    const siteAppId = req.params.siteId
+// Add a new member
+const addMember = async (req, res) => {
+    try {
+        const payload = req.body;
+        const siteAppId = req.params.siteId;
+        const MemberProp = new DynamicSql(payload);
 
-    const MemberProp = new DynamicSql(payload)
-    
-    const sql = `SELECT api_key FROM site_app WHERE id = ?`
-    const values = [siteAppId]
-    // get api key from site app
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-        
-        const data = result[0]
-        if(!data) return res.status(StatusCodes.BAD_REQUEST).json(`no site with id: ${siteAppId}`)
+        // Get API key from site app
+        const [siteAppResult] = await db.query('SELECT api_key FROM site_app WHERE id = ?', [siteAppId]);
+        const siteAppData = siteAppResult[0];
 
-        // check for existing member
-        const sql = `SELECT * FROM members WHERE email = ?`
-        const values = [payload.email]
-        db.query(sql, values, (err, result)=>{
-            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
-            
-            if(result[0]) return res.status(StatusCodes.CONFLICT).json('member already exist')
-            const sql = `INSERT INTO members (${MemberProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES (?)`
-            const values = [
-                ...MemberProp.fieldValues(), 
-                siteAppId, 
-                data.api_key
-            ]
-            // add new members
-            db.query(sql, [values], (err, result)=>{
-                console.log();
-                if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
-    
-                return res.status(StatusCodes.CREATED).json('member created successfully')
-            })
-        })
-    })
-}
-const getMembers = (req, res)=> {
-    const siteAppId = req.params.siteId
-    const sql = `SELECT * FROM members WHERE site_app_id = ?`
-    const values = [siteAppId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-        const data = result
-        if(data.length === 0) return res.status(StatusCodes.NOT_FOUND).json('no members found') 
+        if (!siteAppData) {
+            return res.status(StatusCodes.BAD_REQUEST).json(`No site with id: ${siteAppId}`);
+        }
 
-        res.status(StatusCodes.OK).json(data)
-    })
-}
-const getMember = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
+        // Check for existing member
+        const [existingMemberResult] = await db.query('SELECT * FROM members WHERE email = ?', [payload.email]);
 
-    const sql = `SELECT * FROM members WHERE site_app_id = ? AND id = ?`
-    const values = [siteAppId, memberId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-        console.log(result[0]);
-        // check if member exist
-        if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json(`no member with id: ${memberId} `)
-        res.status(StatusCodes.OK).json(result)
-    })
-}
-const deleteMember = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
+        if (existingMemberResult[0]) {
+            return res.status(StatusCodes.CONFLICT).json('Member already exists');
+        }
 
-    const sql = `DELETE FROM members WHERE site_app_id = ? AND id = ?`
-    const values = [siteAppId, memberId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        // Add new member
+        const addMemberSql = `INSERT INTO members (${MemberProp.fieldNames().join(', ')}, site_app_id, api_key) VALUES (?)`;
+        const addMemberValues = [...MemberProp.fieldValues(), siteAppId, siteAppData.api_key];
 
-        // check if member exist
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`no member with id: ${memberId} `)
+        await db.query(addMemberSql, [addMemberValues]);
 
-        res.status(StatusCodes.OK).json(`member with id: ${memberId} has been deleted successfully`)
-    })
+        return res.status(StatusCodes.CREATED).json('Member created successfully');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-}
-const updateMember = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
-    const payload = req.body
+// Get all members
+const getMembers = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const [membersResult] = await db.query('SELECT * FROM members WHERE site_app_id = ?', [siteAppId]);
+        const membersData = membersResult;
 
-    // construct the SQL dynamically
-    const MemberProp = new DynamicSql(payload)
+        if (membersData.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('No members found');
+        }
 
-    const sql = `UPDATE members SET ${MemberProp.placeholder()} WHERE site_app_id = ? AND id = ?`
-    const values = [...MemberProp.fieldValues(), siteAppId, memberId]
+        return res.status(StatusCodes.OK).json(membersData);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+// Get a specific member
+const getMember = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
+        const [memberResult] = await db.query('SELECT * FROM members WHERE site_app_id = ? AND id = ?', [siteAppId, memberId]);
+        const memberData = memberResult[0];
 
-        // check if member was not updated
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`no member with id: ${memberId} `)
+        if (!memberData) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No member with id: ${memberId}`);
+        }
 
-        res.status(StatusCodes.OK).json("member details updated successfully")
-    })
-}
+        return res.status(StatusCodes.OK).json(memberData);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
+// Delete a member
+const deleteMember = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
+        const [result] = await db.query('DELETE FROM members WHERE site_app_id = ? AND id = ?', [siteAppId, memberId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No member with id: ${memberId}`);
+        }
+
+        return res.status(StatusCodes.OK).json(`Member with id: ${memberId} has been deleted successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
+// Update member details
+const updateMember = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
+        const payload = req.body;
+
+        const MemberProp = new DynamicSql(payload);
+
+        const updateMemberSql = `UPDATE members SET ${MemberProp.placeholder()} WHERE site_app_id = ? AND id = ?`;
+        const updateMemberValues = [...MemberProp.fieldValues(), siteAppId, memberId];
+
+        const [result] = await db.query(updateMemberSql, updateMemberValues);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`No member with id: ${memberId}`);
+        }
+
+        return res.status(StatusCodes.OK).json('Member details updated successfully');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 export {
     addMember,

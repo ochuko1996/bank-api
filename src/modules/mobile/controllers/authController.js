@@ -2,7 +2,7 @@ import db from "../../../../util/db.js";
 import { StatusCodes } from "http-status-codes";
 import jwt from 'jsonwebtoken'
 import DynamicSql from "../../../../util/dynamicSql.js";
-
+import Mailjet from "node-mailjet";
 const register = (req, res) =>{
     const {email} = req.body
     const {siteId, api_key} = req.query

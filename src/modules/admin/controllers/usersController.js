@@ -1,52 +1,79 @@
 import db from '../../../../util/db.js'
 import { StatusCodes } from 'http-status-codes'
 import DynamicSql from '../../../../util/dynamicSql.js'
-const getUsers = (req, res)=>{
-    // const id = req.user.id
-    const sql = `SELECT * FROM users`
-    db.query(sql, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+// Get all users
+const getUsers = async (req, res) => {
+    try {
+        const sql = `SELECT * FROM users`;
+        const [result] = await db.query(sql);
 
-        res.status(StatusCodes.OK).json(result)
-     })
-}
-const getUser = (req, res)=>{
-    const userId = req.params.id 
-    const sql = `SELECT * FROM users WHERE id = ?`
-    const values = [userId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        return res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        if(!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`user with id: ${userId} not found`)
-        res.status(StatusCodes.OK).json(result)
-    })
-}
-const updateUser = (req, res)=>{
-     const userId = req.params.id 
-     const payload = req.body
+// Get a specific user
+const getUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const sql = `SELECT * FROM users WHERE id = ?`;
+        const values = [userId];
+        const [result] = await db.query(sql, values);
 
-    const UserProp = new DynamicSql(payload)
-    const sql = `UPDATE users SET ${UserProp.placeholder()}  WHERE id = ?`
-    const values = [userId]
-    db.query(sql, [...UserProp.fieldValues(), values], (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        if (!result[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json(`User with id: ${userId} not found`);
+        }
 
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`user with id: ${userId} not found`)
-        res.status(StatusCodes.OK).json(`user with id: ${userId} updated successfully`)
-    })
-}
-const deleteUser = (req, res)=>{
-     const userId = req.params.id 
+        return res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    const sql = `DELETE FROM users WHERE id = ?`
-    const values = [userId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+// Update user details
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const payload = req.body;
 
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`user with id: ${userId} not found`)
-        res.status(StatusCodes.OK).json(`user with id: ${userId} delete successfully`)
-    })
-}
+        const UserProp = new DynamicSql(payload);
+        const sql = `UPDATE users SET ${UserProp.placeholder()} WHERE id = ?`;
+        const values = [userId];
+        const [result] = await db.query(sql, [...UserProp.fieldValues(), ...values]);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`User with id: ${userId} not found`);
+        }
+
+        return res.status(StatusCodes.OK).json(`User with id: ${userId} updated successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
+// Delete a user
+const deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const sql = `DELETE FROM users WHERE id = ?`;
+        const values = [userId];
+        const [result] = await db.query(sql, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`User with id: ${userId} not found`);
+        }
+
+        return res.status(StatusCodes.OK).json(`User with id: ${userId} deleted successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 
 export {

@@ -3,73 +3,96 @@ import db from '../../../../util/db.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const registerUser =  (req, res)=>{
-    const {name, email, phone, username, password} = req.body
-    const sql = `SELECT * FROM users WHERE email = ?`
-    
-    db.query(sql,[email], (err, result)=>{
-        if(err) res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong o')
-        
-        // check if user exist
-        if(result.length) return res.status(StatusCodes.CONFLICT).json("user already exist")
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, phone, username, password } = req.body;
 
-        // create new user
-        // hash password
-        const hashedPwd = bcrypt.hashSync(password, 10)
-        const sql = `INSERT INTO users (name, email, phone, username, password) VALUE (?)`
+        // Check if user exists
+        const checkUserSql = 'SELECT * FROM users WHERE email = ?';
+        const [existingUser] = await db.query(checkUserSql, [email]);
 
-        const values = [
-            name, 
-            email,
-            phone,
-            username,
-            hashedPwd
-        ]
-        db.query(sql, [values], (err, result)=>{
-            console.log(err);
-            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
-            return res.status(StatusCodes.CREATED).json("user created")
-        })
-    })
-}
+        if (existingUser.length) {
+            return res.status(StatusCodes.CONFLICT).json('User already exists');
+        }
 
-const login =   (req, res)=>{
-    const {email, password} = req.body
-    const sql = `SELECT * FROM users WHERE email = ?`
+        // Hash password
+        const hashedPwd = await bcrypt.hash(password, 10);
 
-    db.query(sql, [email], (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("someting went wrong")
-        if(result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("user not found")
+        // Insert new user
+        const insertUserSql = 'INSERT INTO users (name, email, phone, username, password) VALUES (?, ?, ?, ?, ?)';
+        const values = [name, email, phone, username, hashedPwd];
 
-        const data = result[0]
-        
-        const checkPassword = bcrypt.compareSync(password, data.password)
+        const [result] = await db.query(insertUserSql, values);
 
-        if(!checkPassword) return res.status(StatusCodes.BAD_REQUEST).json("Wrong password or email")
+        if (result.affectedRows > 0) return res.status(StatusCodes.CREATED).json('User created');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        const token = jwt.sign(serializedUser(data), process.env.JWT_SECRET_KEY, {expiresIn: "1d"})
+
+
+
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Check if the user exists
+        const checkUserSql = 'SELECT * FROM users WHERE email = ?';
+        const [result] = await db.query(checkUserSql, [email]);
+
+        if (result.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('User not found');
+        }
+
+        const data = result[0];
+
+        // Check password
+        const checkPassword = await bcrypt.compare(password, data.password);
+
+        if (!checkPassword) {
+            return res.status(StatusCodes.BAD_REQUEST).json('Wrong password or email');
+        }
+
+        // Create JWT token
+        const token = jwt.sign(serializedUser(data), process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
+
+        // Set JWT token as a cookie
         res.cookie('jwt', token, {
-            httponly: true, 
-            sameSite: 'none', 
+            httponly: true,
+            sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
-            // secure: true //when going online or using in chrome uncomment this line
-        })
-        return res.status(StatusCodes.ACCEPTED).json({
-            token, 
-            user: serializedUser(data),
-        })
-           
-    })
-}
+            // secure: true // uncomment this line when going online or using in chrome
+        });
 
-const logout = (req, res)=> {
-    res.clearCookie('jwt', {
-        httponly: true, 
-        sameSite: 'none', 
-        maxAge: 24 * 60 * 60 * 1000,
-        // secure: true //when going online or using in chrome uncomment this line
-    }).status(StatusCodes.OK).json("user has been logged out")
-}
+        return res.status(StatusCodes.ACCEPTED).json({
+            token,
+            user: serializedUser(data),
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
+const logout = async (req, res) => {
+    try {
+        // Clear JWT cookie
+        res.clearCookie('jwt', {
+            httponly: true,
+            sameSite: 'none',
+            maxAge: 0, // Setting maxAge to 0 clears the cookie
+            // secure: true // uncomment this line when going online or using in chrome
+        });
+
+        return res.status(StatusCodes.OK).json('User has been logged out');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 function serializedUser(user){
     return {

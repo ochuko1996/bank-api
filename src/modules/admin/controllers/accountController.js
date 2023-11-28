@@ -1,110 +1,137 @@
 import db from '../../../../util/db.js'
 import DynamicSql from '../../../../util/dynamicSql.js'
 import { StatusCodes } from "http-status-codes"
-const addAccount = (req, res)=>{
-    const payload = req.body
-    const memberId = req.params.memberId
 
-    // construct a dynamic sql
-    const AccountProp = new DynamicSql(payload)
-    const  sql = `SELECT * FROM members WHERE id = ?`
-    const values = [memberId]
+const addAccount = async (req, res) => {
+    try {
+        const payload = req.body;
+        const memberId = req.params.memberId;
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        // Check if the member exists
+        const checkMemberSql = 'SELECT * FROM members WHERE id = ?';
+        const [memberResult] = await db.query(checkMemberSql, [memberId]);
 
-        // check if member exist
-        const memberData = result[0]
-        if (!memberData) return res.status(StatusCodes.NOT_FOUND).json('member not found')
+        if (memberResult.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('Member not found');
+        }
 
-        // check if account already exist 
-        const sql = `SELECT * FROM account WHERE memberId = ?`
-        const values = [ memberId ]
-        db.query(sql, values, (err, result)=>{
-            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong account")
+        const memberData = memberResult[0];
 
-            if(result[0]) return res.status(StatusCodes.CONFLICT).json('account already exist')
-            const sql = `INSERT INTO account (${AccountProp.fieldNames().join(', ')}, memberId, username) VALUES(?)`
-            const values = [...AccountProp.fieldValues(), memberId, memberData.username]
-            db.query(sql, [values], (err, result)=>{
-                if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        // Check if the account already exists
+        const checkAccountSql = 'SELECT * FROM account WHERE memberId = ?';
+        const [accountResult] = await db.query(checkAccountSql, [memberId]);
 
-                res.status(StatusCodes.CREATED).json('account created successfully')
-            })
-        })
-    })
-    
-}
+        if (accountResult.length > 0) {
+            return res.status(StatusCodes.CONFLICT).json('Account already exists');
+        }
 
-const getAccount = (req, res)=>{
-    const memberId = req.params.memberId
-    const accountId = req.params.accountId
+        // Construct dynamic SQL for account insertion
+        const accountProp = new DynamicSql(payload);
+        const insertAccountSql = `INSERT INTO account (${accountProp.fieldNames().join(', ')}, memberId, username) VALUES (?)`;
+        const accountValues = [...accountProp.fieldValues(), memberId, memberData.username];
 
-    const sql = `SELECT * FROM account WHERE memberId = ? AND id = ?`
-    const values = [memberId, accountId]
+        const [result] = await db.query(insertAccountSql, [accountValues]);
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        if (result.affectedRows > 0) return res.status(StatusCodes.CREATED).json('Account created successfully');
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        if(!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`account with ID: ${accountId} not found`)
+const getAccount = async (req, res) => {
+    try {
+        const memberId = req.params.memberId;
+        const accountId = req.params.accountId;
 
-        res.status(StatusCodes.OK).json(result)
-    })
-}
-const updateAccount = (req, res)=>{
-    const memberId = req.params.memberId
-    const accountId = req.params.accountId
-    const payload =  req.body
+        // Check if the account exists
+        const checkAccountSql = 'SELECT * FROM account WHERE memberId = ? AND id = ?';
+        const [result] = await db.query(checkAccountSql, [memberId, accountId]);
 
-    // construct dynamic sql 
-    const fieldNames = Object.keys(payload)
-    const fieldValues = fieldNames.map(fieldName => payload[fieldName])
-    const placeholder = fieldNames.map(fieldName => `${fieldName} = ?`).join(', ')
+        if (!result[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json(`Account with ID: ${accountId} not found`);
+        }
 
-    const sql = `UPDATE account SET ${placeholder} WHERE memberId = ? AND id = ?`
-    const values = [...fieldValues, memberId, accountId]
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+const updateAccount = async (req, res) => {
+    try {
+        const memberId = req.params.memberId;
+        const accountId = req.params.accountId;
+        const payload = req.body;
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        // Construct dynamic SQL for account update
+        const accountProp = new DynamicSql(payload)
 
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`account with ID: ${accountId} not found`)
+        const updateAccountSql = `UPDATE account SET ${accountProp.placeholder()} WHERE memberId = ? AND id = ?`;
+        const updateValues = [...accountProp.fieldValues(), memberId, accountId];
 
-        res.status(StatusCodes.OK).json("account updated successfully")
-    })
-}
-const deletetAccount = (req, res)=>{
-    const memberId = req.params.memberId
-    const accountId = req.params.accountId
+        // Execute the update query
+        const [result] = await db.query(updateAccountSql, updateValues);
 
-    const sql = `DELETE FROM account WHERE memberId = ? AND id = ?`
-    const values = [memberId, accountId]
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`Account with ID: ${accountId} not found`);
+        }
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        res.status(StatusCodes.OK).json("Account updated successfully");
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json(`account with ID: ${accountId} not found`)
+const deleteAccount = async (req, res) => {
+    try {
+        const memberId = req.params.memberId;
+        const accountId = req.params.accountId;
 
-        res.status(StatusCodes.OK).json(`account with id: ${accountId} has been deleted successfully`)
-    })
-}
-const getAccounts = (req, res)=>{
-    
+        // Construct the SQL for account deletion
+        const deleteAccountSql = 'DELETE FROM account WHERE memberId = ? AND id = ?';
+        const deleteValues = [memberId, accountId];
 
-    const sql = `SELECT * FROM account`
+        // Execute the deletion query
+        const [result] = await db.query(deleteAccountSql, deleteValues);
 
-    db.query(sql, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('something went wrong')
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json(`Account with ID: ${accountId} not found`);
+        }
 
-        if(!result[0]) return res.status(StatusCodes.NOT_FOUND).json(`account not found`)
+        res.status(StatusCodes.OK).json(`Account with ID: ${accountId} has been deleted successfully`);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        res.status(StatusCodes.OK).json(result)
-    })
-}
+const getAccounts = async (req, res) => {
+    try {
+        // Construct the SQL for fetching all accounts
+        const getAccountsSql = 'SELECT * FROM account';
+
+       // Execute the query
+        const [result] = await db.query(getAccountsSql);
+
+        if (result.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('No accounts found');
+        }
+
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 export {
     addAccount,
     getAccount,
     updateAccount, 
-    deletetAccount,
+    deleteAccount,
     getAccounts
 }

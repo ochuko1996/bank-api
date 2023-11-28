@@ -2,87 +2,129 @@ import db from '../../../../util/db.js'
 import DynamicSql from '../../../../util/dynamicSql.js'
 import { StatusCodes } from "http-status-codes";
 
-const addCard = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
-    const payload = req.body
+const addCard = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
+        const payload = req.body;
 
-    const CardProp = new DynamicSql(payload)
-    const sql = `SELECT api_key FROM site_app WHERE id = ?`
-    const value = [siteAppId]
-    db.query(sql, value, (err, result)=> {
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
+        const cardProp = new DynamicSql(payload);
 
-        const data = result[0]
-        const sql = `INSERT INTO card (${CardProp.fieldNames().join(', ')}, member_id, site_app_id, api_key) VALUES(?)`
-        const values = [...CardProp.fieldValues(), memberId, siteAppId, data.api_key]
+        // Find API key for the given site app
+        const findApiKeySql = 'SELECT api_key FROM site_app WHERE id = ?';
+        const findApiKeyValues = [siteAppId];
+        const [apiKeyResult] = await db.query(findApiKeySql, findApiKeyValues);
 
-        db.query(sql, [values], (err, result)=>{
-            if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("something went wrong")
+        if (!apiKeyResult[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json(`Site app with ID: ${siteAppId} not found`);
+        }
 
-            res.status(StatusCodes.CREATED).json('card created successfully')
-        })
-    })
-}
-const getCards = (req, res)=>{
-    const siteAppId = req.params.siteId
+        // Insert card record
+        const insertCardSql = `INSERT INTO card (${cardProp.fieldNames().join(', ')}, member_id, site_app_id, api_key) VALUES(?)`;
+        const insertCardValues = [...cardProp.fieldValues(), memberId, siteAppId, apiKeyResult[0].api_key];
+        const [insertResult] = await db.query(insertCardSql, [insertCardValues]);
 
-    const sql = `SELECT * FROM card WHERE site_app_id = ?`
-    const value = [siteAppId]
-    db.query(sql, value, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
-        const data = result
-        if(!data) return res.status(StatusCodes.NOT_FOUND).json("cards not found")
+        if (insertResult.affectedRows > 0) {
+            return res.status(StatusCodes.CREATED).json('Card created successfully');
+        } else {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        res.status(StatusCodes.OK).json(data)
-    })
-}
-const getCard = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
-    
-    const sql = `SELECT * FROM card WHERE member_id = ? AND site_app_id = ?`
-    const values = [memberId, siteAppId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+const getCards = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
 
-        if (result.length === 0) return res.status(StatusCodes.NOT_FOUND).json("card not found")
+        // Find cards for the given site app
+        const findCardsSql = 'SELECT * FROM card WHERE site_app_id = ?';
+        const findCardsValues = [siteAppId];
+        const [result] = await db.query(findCardsSql, findCardsValues);
 
-       return res.status(StatusCodes.OK).json(result)
+        if (!result[0]) {
+            return res.status(StatusCodes.NOT_FOUND).json('Cards not found');
+        }
 
-    })
-}
-const deleteCard = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
-    
-    const sql = `DELETE FROM card WHERE member_id = ? AND site_app_id = ?`
-    const values = [memberId, siteAppId]
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-        if (result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json("card not found")
+const getCard = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
 
-       return res.status(StatusCodes.OK).json('card deleted successfully')
+        // Find card by member id and site app id
+        const findCardSql = 'SELECT * FROM card WHERE member_id = ? AND site_app_id = ?';
+        const findCardValues = [memberId, siteAppId];
+        const [result] = await db.query(findCardSql, findCardValues);
 
-    })
-}
-const updateCard = (req, res)=>{
-    const siteAppId = req.params.siteId
-    const memberId = req.params.memberId
-    const payload = req.body
+        if (result.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('Card not found');
+        }
 
-    const CardProp = new DynamicSql(payload)
-    const sql = `UPDATE card SET ${CardProp.placeholder()} WHERE member_id = ?`
-    const values = [...CardProp.fieldValues(), memberId]
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
 
-    db.query(sql, values, (err, result)=>{
-        if(err) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+const deleteCard = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
 
-        if(result.affectedRows === 0) return res.status(StatusCodes.NOT_FOUND).json("card not found")
-        res.status(StatusCodes.CREATED).json('card created successfully')
-    })
-}
+        // Delete card by member id and site app id
+        const deleteCardSql = 'DELETE FROM card WHERE member_id = ? AND site_app_id = ?';
+        const deleteCardValues = [memberId, siteAppId];
+
+        // Execute the deletion query
+        const [result] = await db.query(deleteCardSql, deleteCardValues);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('Card not found');
+        }
+
+        res.status(StatusCodes.OK).json('Card deleted successfully');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
+const updateCard = async (req, res) => {
+    try {
+        const siteAppId = req.params.siteId;
+        const memberId = req.params.memberId;
+        const payload = req.body;
+
+        const cardProp = new DynamicSql(payload);
+
+        // Update card by member id
+        const updateCardSql = `UPDATE card SET ${cardProp.placeholder()} WHERE member_id = ?`;
+        const updateCardValues = [...cardProp.fieldValues(), memberId];
+
+        // Execute the update query
+        const [result] = await db.query(updateCardSql, updateCardValues);
+
+        if (result.affectedRows === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json('Card not found');
+        }
+
+        res.status(StatusCodes.OK).json('Card updated successfully');
+    } catch (error) {
+        console.error(error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Something went wrong');
+    }
+};
+
 
 export {
     addCard,

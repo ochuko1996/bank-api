@@ -2,7 +2,6 @@ import "dotenv/config.js";
 import express from "express";
 import { adminApp } from "./src/modules/admin/app.js";
 const app = express()
-
 const PORT = 4000 || process.env.PORT
 import cookieParser from "cookie-parser";
 import cors from 'cors'
@@ -25,7 +24,6 @@ app.use(cookieParser())
 
 app.use(mobileApp())
 app.use(adminApp())
-
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })

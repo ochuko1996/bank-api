@@ -1,14 +1,15 @@
-import mysql from 'mysql'
-import util from "util"
+import mysql from 'mysql2/promise'
 
 const pool = mysql.createPool({
     host: 'localhost',
     user: process.env.USER,
     database: process.env.DATABASE,
-    password: process.env.PASSWORD
+    password: process.env.PASSWORD,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 })
 
-pool.query = util.promisify(pool.query)
 
 const db = pool
 export default db 
