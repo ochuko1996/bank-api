@@ -2,7 +2,7 @@ import "dotenv/config.js";
 import express from "express";
 import { adminApp } from "./src/modules/admin/app.js";
 const app = express()
-const PORT = 4000 || process.env.PORT
+const PORT = process.env.PORT | 4000
 import cookieParser from "cookie-parser";
 import cors from 'cors'
 import credential from './src/middleware/credentials.js'
@@ -27,4 +27,4 @@ app.use(adminApp())
 app.use('/', (req, res)=> {
     res.send("Bank Api")
 })
-app.listen(PORT, ()=> console.log(`Server is life on port: http://localhost:${PORT}`))
+app.listen(PORT, ()=> console.log(`Server is live on port: ${PORT}`))
