@@ -2,7 +2,7 @@ import "dotenv/config.js";
 import express from "express";
 import { adminApp } from "./src/modules/admin/app.js";
 const app = express()
-const PORT = process.env.PORT | 4000
+const PORT = Number(process.env.PORT) || 4000
 import cookieParser from "cookie-parser";
 import cors from 'cors'
 import credential from './src/middleware/credentials.js'
